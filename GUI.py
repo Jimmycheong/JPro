@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (QApplication,
 															QAbstractItemView,
 															QGridLayout,
 															QHeaderView,
+															QTabWidget,
 															)
 from PyQt5.QtGui import QKeySequence
 from main2 import Main 
@@ -30,6 +31,23 @@ class GUI(QWidget):
 
 	def initUI(self): 
 	
+		#====##====##====##====##====#
+		# TAB CREATION
+		#====##====##====##====##====#
+		self.tab_queue = QTabWidget(self)
+		self.tab_queue.show()
+
+		self.tab_1,self.tab_2 = QWidget(), QWidget()
+
+		self.tab_queue.addTab(self.tab_1, 'Tab 1')
+		self.tab_queue.addTab(self.tab_2, 'Tab 2')
+		self.tab_queue.resize(640,440)
+#		self.tab_queue.show()
+
+		# self.tab_1.layout = QVBoxLayout(self)
+		# self.tab_1.layout.addWidget(label1)
+		# self.tab_1.setLayout(self)
+
 		#Shortcut to close window 
 		exitShortcut = QShortcut(QKeySequence('Ctrl+W'),self, qApp.quit)
 
@@ -37,7 +55,7 @@ class GUI(QWidget):
 		controlBox = QHBoxLayout()
 		tableBox = QGridLayout()
 
-		label1 = QLabel('Machine Production')
+		label1 = QLabel('Machine Production',self)
 
 		#====##====##====##====##====#
 		#SESSION EXTRACTION TO TABLE 
@@ -53,9 +71,10 @@ class GUI(QWidget):
 		#Generate Table & Setting Column headers
 		self.table = QTableWidget(len(self.all_orders),4,self)
 
-		self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Model')) 
-		self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Quantity'))
-		self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Order Date'))
+		self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Order No.'))
+		self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Model')) 
+		self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Quantity'))
+		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Order Date'))
 
 		'''
 		Use QHeader Class to resize the tables
@@ -123,8 +142,8 @@ class GUI(QWidget):
 
 	def resetTable(self):
 		self.table.clearContents()
-		latest_table =  len(self.main.session.query(ProductionQueue).all())
-		self.table.insertRow(latest_table - 1)
+		self.table_length += 1 
+		self.table.insertRow(self.table_length - 1)
 		self.setData(self.main.session.query(ProductionQueue).all())
 
 	'''
@@ -135,9 +154,10 @@ class GUI(QWidget):
 	def setData(self, all_orders):
 		row = 0 
 		for order in all_orders: 
-			self.table.setItem(row, 0, QTableWidgetItem(order.model))
-			self.table.setItem(row, 1, QTableWidgetItem(str(order.order_quantity)))
-			self.table.setItem(row, 2, QTableWidgetItem(str(order.order_time)))
+			self.table.setItem(row, 0, QTableWidgetItem(str(order.id)))
+			self.table.setItem(row, 1, QTableWidgetItem(order.model))
+			self.table.setItem(row, 2, QTableWidgetItem(str(order.order_quantity)))
+			self.table.setItem(row, 3, QTableWidgetItem(str(order.order_time)))
 			row += 1 
 
 	'''
@@ -147,9 +167,21 @@ class GUI(QWidget):
 	'''			
 
 	def deleteRecord(self):
+		selected_item = self.table.item(self.table.currentRow(),0).text()
+		self.deleteFromDB(selected_item)
 		self.table.removeRow(self.table.currentRow())
-		self.table.setCurrentCell(-1,-1) 
-				
+		self.table.setCurrentCell(-1,-1)
+		self.table_length = len(self.main.session.query(ProductionQueue).all())
+
+	'''
+	deleteFromDB(): 
+	- Takes an unique order number and removes it from the database table.
+	'''
+	def deleteFromDB(self,record): 
+		search_instance = self.main.session.query(ProductionQueue).filter_by(id = record).one()
+		self.main.session.delete(search_instance)
+		self.main.session.commit()
+
 if __name__ == '__main__' : 
 
 	app = QApplication(sys.argv)

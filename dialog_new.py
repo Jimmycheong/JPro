@@ -59,7 +59,6 @@ class Dialog(QDialog):
 			self.main.session.add(instance)
 			self.main.session.commit()
 			self.close()
-
 		else: 
 			self.error_message.setText('Please enter an integer only')
 			self.error_message.adjustSize()
