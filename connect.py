@@ -11,7 +11,7 @@ productiontimes = {"C1":{"P1":12,"P2":4,"P5":5,"P6":7,"P10":1},
 										"C7":{"P5":8,"P6":8,"P9":5},
 }
 
-class Main():  
+class Connect():  
 	#===##===##===##===##===##===##===#
 	#Connection to SQLITE DB 
 	#===##===##===##===##===##===##===#
@@ -20,7 +20,7 @@ class Main():
 		Base.metadata.bind = self.engine
 		self.DBSession = sessionmaker(bind=self.engine)
 		self.session = self.DBSession()
-	print ('played')
+	print ('Connected to database')
 
 	#===##===##===##===##===##===##===#
 	#Methods   

@@ -1,4 +1,16 @@
+
+#====##====##====##====##====#
+#====##====##====##====##====#
+'''
+PRODUCTION QUEUE: 
+
+- The widget contained inside displays a table of current orders 
+'''
+#====##====##====##====##====#
+#====##====##====##====##====#
+
 import sys 
+import datetime
 from PyQt5.QtWidgets import (QApplication, 
 															QWidget, 
 															QLabel, 
@@ -13,16 +25,14 @@ from PyQt5.QtWidgets import (QApplication,
 															QAbstractItemView,
 															QGridLayout,
 															QHeaderView,
-															QTabWidget,
 															)
 from PyQt5.QtGui import QKeySequence
-from main2 import Main 
+from connect import Connect 
 from dbcreation import Base, Models, ProductionQueue
-import datetime
-
 from dialog_new import Dialog as DBox
 
-class GUI(QWidget): 
+
+class PBox(QWidget): 
 
 	def __init__(self): 
 		super().__init__()
@@ -31,38 +41,14 @@ class GUI(QWidget):
 
 	def initUI(self): 
 	
-		#====##====##====##====##====#
-		# TAB CREATION
-		#====##====##====##====##====#
-		self.tab_queue = QTabWidget(self)
-		self.tab_queue.show()
-
-		self.tab_1,self.tab_2 = QWidget(), QWidget()
-
-		self.tab_queue.addTab(self.tab_1, 'Tab 1')
-		self.tab_queue.addTab(self.tab_2, 'Tab 2')
-		self.tab_queue.resize(640,440)
-#		self.tab_queue.show()
-
-		# self.tab_1.layout = QVBoxLayout(self)
-		# self.tab_1.layout.addWidget(label1)
-		# self.tab_1.setLayout(self)
-
-		#Shortcut to close window 
-		exitShortcut = QShortcut(QKeySequence('Ctrl+W'),self, qApp.quit)
-
-		vBox = QVBoxLayout()
-		controlBox = QHBoxLayout()
-		tableBox = QGridLayout()
-
-		label1 = QLabel('Machine Production',self)
+		self.label1 = QLabel('Machine Production',self)
 
 		#====##====##====##====##====#
 		#SESSION EXTRACTION TO TABLE 
 		#====##====##====##====##====#
 
 		#Session instance creation 
-		self.main = Main()
+		self.main = Connect()
 
 		#Extract all orders in the procedure queue
 		self.all_orders = self.main.session.query(ProductionQueue).all()
@@ -79,9 +65,9 @@ class GUI(QWidget):
 		'''
 		Use QHeader Class to resize the tables
 		'''
-		order_header = self.table.horizontalHeader()
-		order_header.setMinimumSectionSize(130)
-		order_header.setSectionResizeMode(QHeaderView.Stretch)
+		self.order_header = self.table.horizontalHeader()
+		self.order_header.setMinimumSectionSize(130)
+		self.order_header.setSectionResizeMode(QHeaderView.Stretch)
 
 		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Expected completion'))
 
@@ -97,28 +83,32 @@ class GUI(QWidget):
 		#CONTROL PANEL 
 		#====##====##====##====##====#
 
-		btn_neworder = QPushButton('New', self)
-		btn_neworder.clicked.connect(self.getDBox)
+		self.btn_neworder = QPushButton('New', self)
+		self.btn_neworder.clicked.connect(self.getDBox)
 
-		btn_deleterecord = QPushButton('Delete', self)
-		btn_deleterecord.clicked.connect(self.deleteRecord)
+		self.btn_deleterecord = QPushButton('Delete', self)
+		self.btn_deleterecord.clicked.connect(self.deleteRecord)
 
-		controlBox.addWidget(btn_neworder)
-		controlBox.addWidget(btn_deleterecord)
+		#====##====##====##====##====#
+		#Layout forming
+		#====##====##====##====##====#		
+
+		self.vBox = QVBoxLayout()
+		self.controlBox = QHBoxLayout()
+		self.tableBox = QGridLayout()
+
+		self.controlBox.addWidget(self.btn_neworder)
+		self.controlBox.addWidget(self.btn_deleterecord)
 
 		#Adding table into VBoxLayout
 
-		tableBox.addWidget(self.table)
+		self.tableBox.addWidget(self.table)
 
-		vBox.addWidget(label1)
-		vBox.addLayout(tableBox)
-		vBox.addLayout(controlBox)
+		self.vBox.addWidget(self.label1)
+		self.vBox.addLayout(self.tableBox)
+		self.vBox.addLayout(self.controlBox)
 
-		self.setLayout(vBox)
-
-		self.setGeometry(0,0,640,440)
-		self.setWindowTitle('GUI application')
-		self.show()
+		self.setLayout(self.vBox)
 
 		#====##====##====##====##====#
 		#CONTROL PANEL 
@@ -185,5 +175,5 @@ class GUI(QWidget):
 if __name__ == '__main__' : 
 
 	app = QApplication(sys.argv)
-	gui = GUI()
+	pbox = PBox()
 	sys.exit(app.exec_())

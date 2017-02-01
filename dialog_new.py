@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (QApplication,
 															)
 from PyQt5.QtGui import QKeySequence
 from dbcreation import Models
-from main2 import Main
+from connect import Connect
 from dbcreation import ProductionQueue
 
 class Dialog(QDialog): 
@@ -23,7 +23,7 @@ class Dialog(QDialog):
 	def initdiagUI(self):
 		exitShortcut = QShortcut(QKeySequence('Ctrl+W'),self, qApp.quit)
 
-		self.main = Main()
+		self.main = Connect()
 		all_models = self.main.session.query(Models).all()
 
 		label_model = QLabel('Model',self)
