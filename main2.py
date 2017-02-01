@@ -11,26 +11,24 @@ productiontimes = {"C1":{"P1":12,"P2":4,"P5":5,"P6":7,"P10":1},
 										"C7":{"P5":8,"P6":8,"P9":5},
 }
 
-def Main():  
+class Main():  
 	#===##===##===##===##===##===##===#
 	#Connection to SQLITE DB 
 	#===##===##===##===##===##===##===#
-	engine = create_engine('sqlite:///complete.db')
-	Base.metadata.bind = engine
-	DBSession = sessionmaker(bind=engine)
-	session = DBSession()
+	def __init__(self):
+		self.engine = create_engine('sqlite:///complete.db')
+		Base.metadata.bind = self.engine
+		self.DBSession = sessionmaker(bind=self.engine)
+		self.session = self.DBSession()
 	print ('played')
 
 	#===##===##===##===##===##===##===#
 	#Methods   
 	#===##===##===##===##===##===##===#
 
-	print(session.query(ProductionQueue).first())
-	def getTime(part, process): 
-		print("ProductionTime is: ", productiontimes[process][part])
-		return
+#	print(session.query(ProductionQueue).first().model)	
+#	def getTime(part, process): 
+#		print("ProductionTime is: ", productiontimes[process][part])
+#		return
 	
-	print (getTime('P5','C7'))
-
-if __name__ == '__main__': 
-	Main() 
+#	print (getTime('P5','C7'))
