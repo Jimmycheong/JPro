@@ -14,18 +14,18 @@ class App(QMainWindow):
 	def __init__(self):
 		super().__init__() 
 
-
 		self.tabs = QTabWidget()
 		self.setCentralWidget(self.tabs)
 		
 		self.pbox = PBox()
-		self.tabs.addTab(self.pbox, 'Order Queue')
+		self.tabs.addTab(self.pbox, 'Order Queue / 生产队列')
 
 		self.ibox = IBox()
-		self.tabs.addTab(self.ibox, 'Inventory')		
+		self.tabs.addTab(self.ibox, 'Inventory / 库存 ')		
 
 		self.setGeometry(0,0,640,440)
 		self.setWindowTitle('JPro')
+#		self.setStyleSheet('background-color: #444444')
 		self.show()
 
 		#===##===##===##===##===#

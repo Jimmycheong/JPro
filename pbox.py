@@ -57,10 +57,10 @@ class PBox(QWidget):
 		#Generate Table & Setting Column headers
 		self.table = QTableWidget(len(self.all_orders),4,self)
 
-		self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Order No.'))
-		self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Model')) 
-		self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Quantity'))
-		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Order Date'))
+		self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Order No. ／订单号'))
+		self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Model／型号')) 
+		self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Quantity ／ 数量 '))
+		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Order Date ／ 订单日期'))
 
 		'''
 		Use QHeader Class to resize the tables
@@ -69,11 +69,8 @@ class PBox(QWidget):
 		self.order_header.setMinimumSectionSize(130)
 		self.order_header.setSectionResizeMode(QHeaderView.Stretch)
 
-		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Expected completion'))
-
 		self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-
-		print ('original selection: ', self.table.currentRow())
+		self.table.setCurrentCell(-1,-1)
 
 		# Iterating through all records 
 		
@@ -83,10 +80,10 @@ class PBox(QWidget):
 		#CONTROL PANEL 
 		#====##====##====##====##====#
 
-		self.btn_neworder = QPushButton('New', self)
+		self.btn_neworder = QPushButton('New / 加单', self)
 		self.btn_neworder.clicked.connect(self.getDBox)
 
-		self.btn_deleterecord = QPushButton('Delete', self)
+		self.btn_deleterecord = QPushButton('Delete / 取消', self)
 		self.btn_deleterecord.clicked.connect(self.deleteRecord)
 
 		#====##====##====##====##====#
@@ -94,15 +91,14 @@ class PBox(QWidget):
 		#====##====##====##====##====#		
 
 		self.vBox = QVBoxLayout()
-		self.controlBox = QHBoxLayout()
-		self.tableBox = QGridLayout()
-
-		self.controlBox.addWidget(self.btn_neworder)
-		self.controlBox.addWidget(self.btn_deleterecord)
 
 		#Adding table into VBoxLayout
-
+		self.tableBox = QGridLayout()
 		self.tableBox.addWidget(self.table)
+
+		self.controlBox = QHBoxLayout()
+		self.controlBox.addWidget(self.btn_neworder)
+		self.controlBox.addWidget(self.btn_deleterecord)
 
 		self.vBox.addWidget(self.label1)
 		self.vBox.addLayout(self.tableBox)
@@ -157,11 +153,13 @@ class PBox(QWidget):
 	'''			
 
 	def deleteRecord(self):
-		selected_item = self.table.item(self.table.currentRow(),0).text()
-		self.deleteFromDB(selected_item)
-		self.table.removeRow(self.table.currentRow())
-		self.table.setCurrentCell(-1,-1)
-		self.table_length = len(self.main.session.query(ProductionQueue).all())
+		if self.table.currentRow() != -1: 
+		#	print('current selected: ', self.table.currentRow())
+			selected_item = self.table.item(self.table.currentRow(),0).text()
+			self.deleteFromDB(selected_item)
+			self.table.removeRow(self.table.currentRow())
+			self.table.setCurrentCell(-1,-1)
+			self.table_length = len(self.main.session.query(ProductionQueue).all())
 
 	'''
 	deleteFromDB(): 
