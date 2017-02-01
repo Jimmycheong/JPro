@@ -60,8 +60,9 @@ class PlotCanvas(FigureCanvas):
 	def plot(self): 
 	
 		models = [i.name for i in self.main.session.query(Models).all()]
+		quantity = [i.current_quantity for i in self.main.session.query(Models).all()]
 		x = np.arange(len(models))
-		quantity = [100,200,300,150]
+#		quantity = [100,200,300,150]
 
 		self.axes.bar(x,quantity, align='center', alpha=0.5, color='lightblue')
 		plt.xticks(x,models)
