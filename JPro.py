@@ -8,6 +8,9 @@ from PyQt5.QtWidgets import (QApplication,
 from PyQt5.QtGui import QKeySequence
 from pbox import PBox
 from ibox import IBox
+from tbox import TBox
+from cbox import CBox
+import numpy as np
 
 class App(QMainWindow): 
 	
@@ -22,6 +25,12 @@ class App(QMainWindow):
 
 		self.ibox = IBox()
 		self.tabs.addTab(self.ibox, 'Inventory / 库存 ')		
+
+		self.tbox = TBox()
+		self.tabs.addTab(self.tbox, 'Wiki / 维基 ')
+
+		self.cbox = CBox()
+		self.tabs.addTab(self.cbox, 'Calculator / 计算机')
 
 		self.setGeometry(0,0,640,440)
 		self.setWindowTitle('JPro')

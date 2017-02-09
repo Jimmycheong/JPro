@@ -37,10 +37,6 @@ class PBox(QWidget):
 	def __init__(self): 
 		super().__init__()
 
-		self.initUI()
-
-	def initUI(self): 
-	
 		self.label1 = QLabel('Machine Production',self)
 
 		#====##====##====##====##====#
@@ -105,6 +101,9 @@ class PBox(QWidget):
 		self.vBox.addLayout(self.controlBox)
 
 		self.setLayout(self.vBox)
+
+		self.setGeometry(0,0,640,440)
+		self.show()
 
 		#====##====##====##====##====#
 		#CONTROL PANEL 
