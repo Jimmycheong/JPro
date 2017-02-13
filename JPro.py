@@ -11,6 +11,12 @@ from ibox import IBox
 from tbox import TBox
 from cbox import CBox
 import numpy as np
+from PyQt5.QtSql import QSqlDatabase,QSqlQuery,QSqlRecord, QSqlField
+
+
+db = QSqlDatabase.addDatabase("QSQLITE")
+db.setDatabaseName("complete.db")
+db.open()
 
 class App(QMainWindow): 
 	

@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import (QApplication,
 															QAbstractItemView,
 															)
 from PyQt5.QtGui import QKeySequence,QStandardItem,QStandardItemModel
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel, QSqlQuery
 from connect import Connect 
 from dbcreation import Base, Models, ProductionQueue
 from dialog_new import Dialog as DBox
@@ -58,11 +59,9 @@ class CBox(QWidget):
 
 	def __init__(self): 
 		super().__init__()
-
 		exitShortcut = QShortcut(QKeySequence('Ctrl+W'),self, qApp.quit)
-		
-		self.connect = Connect()
 
+		self.connect = Connect()
 		self.all_models = self.connect.session.query(Models).all()
 
 
@@ -125,8 +124,8 @@ class CBox(QWidget):
 			self.comboboxlist[row] = self.addComboBox(self.comboboxlist[row], p)
 			self.table.setItem(row, 0, QTableWidgetItem(p))
 			self.table.setItem(row, 1, QTableWidgetItem(str(self.comboboxlist[row].currentData()))) 
-			self.table.setCellWidget(row,2, self.comboboxlist[row])
-			
+			#self.table.setCellWidget(row,2, self.comboboxlist[row])
+
 			row += 1 
 
 	def createconnections(self):

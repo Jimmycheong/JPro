@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (QApplication,
 															QLabel, 
 															QTableWidget, 
 															QTableWidgetItem,
+															QTableView,
 															QVBoxLayout,
 															QHBoxLayout,
 															QPushButton,
@@ -24,12 +25,13 @@ from PyQt5.QtWidgets import (QApplication,
 															QDialog,
 															QAbstractItemView,
 															QGridLayout,
-															QHeaderView,
+															QHeaderView,									
 															)
 from PyQt5.QtGui import QKeySequence
 from connect import Connect 
 from dbcreation import Base, Models, ProductionQueue
 from dialog_new import Dialog as DBox
+from PyQt5.QtSql import QSqlDatabase, QSqlTableModel
 
 
 class PBox(QWidget): 
@@ -43,34 +45,53 @@ class PBox(QWidget):
 		#SESSION EXTRACTION TO TABLE 
 		#====##====##====##====##====#
 
+		#UNCOMMENT FOR FINAL PRODUCT
+		# db = QSqlDatabase.database("pbox")
+
+		#Development product - Please turn on to edit widget alone.
+
+		db = QSqlDatabase.addDatabase("QSQLITE")
+		db.setDatabaseName("complete.db")
+		db.open()
+
 		#Session instance creation 
-		self.main = Connect()
-
 		#Extract all orders in the procedure queue
-		self.all_orders = self.main.session.query(ProductionQueue).all()
-		self.table_length = len(self.all_orders)
-		print('origin table length: ', self.table_length)
-		#Generate Table & Setting Column headers
-		self.table = QTableWidget(len(self.all_orders),4,self)
 
-		self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Order No. ／订单号'))
-		self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Model／型号')) 
-		self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Quantity ／ 数量 '))
-		self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Order Date ／ 订单日期'))
+		# self.table.setHorizontalHeaderItem(0, QTableWidgetItem('Order No. ／订单号'))
+		# self.table.setHorizontalHeaderItem(1, QTableWidgetItem('Model／型号')) 
+		# self.table.setHorizontalHeaderItem(2, QTableWidgetItem('Quantity ／ 数量 '))
+		# self.table.setHorizontalHeaderItem(3, QTableWidgetItem('Order Date ／ 订单日期'))
 
 		'''
 		Use QHeader Class to resize the tables
 		'''
-		self.order_header = self.table.horizontalHeader()
-		self.order_header.setMinimumSectionSize(130)
-		self.order_header.setSectionResizeMode(QHeaderView.Stretch)
 
-		self.table.setSelectionBehavior(QAbstractItemView.SelectRows)
-		self.table.setCurrentCell(-1,-1)
 
 		# Iterating through all records 
 		
-		self.setData(self.all_orders)
+		# self.setData(self.all_orders)
+
+		self.model = QSqlTableModel(self, db)
+		self.model.setTable("productionqueue")
+		self.model.setEditStrategy(QSqlTableModel.OnManualSubmit)
+		self.model.select()
+
+		self.tableview = QTableView()
+		self.tableview.setModel(self.model)
+		self.tableview.hideColumn(0)
+
+		self.order_header = self.tableview.horizontalHeader()
+		self.order_header.setMinimumSectionSize(130)
+		self.order_header.setSectionResizeMode(QHeaderView.Stretch)
+		self.tableview.setSelectionBehavior(QAbstractItemView.SelectRows)
+		#self.tableview.setCurrentCell(-1,-1)
+
+		print(self.tableview.rowAt(1))
+
+		self.select = self.tableview.selectionModel()
+		print('Current index: ', self.tableview.selectRow(-1))
+		print ('Selected: ',self.select.selectedRows())
+		print ('has selection: ', self.select.hasSelection())
 
 		#====##====##====##====##====#
 		#CONTROL PANEL 
@@ -88,9 +109,9 @@ class PBox(QWidget):
 
 		self.vBox = QVBoxLayout()
 
-		#Adding table into VBoxLayout
+		#Adding tableview into VBoxLayout
 		self.tableBox = QGridLayout()
-		self.tableBox.addWidget(self.table)
+		self.tableBox.addWidget(self.tableview)
 
 		self.controlBox = QHBoxLayout()
 		self.controlBox.addWidget(self.btn_neworder)
@@ -115,59 +136,28 @@ class PBox(QWidget):
 	def getDBox(self) : 
 		dbox = DBox()
 		dbox.exec()
-		if dbox.oq_input.text(): 
-			self.resetTable()
+		if dbox.oq_input.text():
+			# print ('number of rows: ', self.model.rowCount())
+			# print(dbox.new_record)
+			self.model.insertRecord(self.model.rowCount(),dbox.new_record)
+			self.model.submitAll()
+			dbox.new_record = -1
+
 
 	'''
-	resetTable(): 
-	1. Clears the contents of the Table 
-	2. Inserts an extra row 
-	3. Updates the table with latest db data via query
-	'''
+	deleteRecord: 
 
-	def resetTable(self):
-		self.table.clearContents()
-		self.table_length += 1 
-		self.table.insertRow(self.table_length - 1)
-		self.setData(self.main.session.query(ProductionQueue).all())
+	- removes both from the view and the database 
 
-	'''
-	setData(): 
-	- Runs a loop to populate the table with the current database records 
-	'''
-
-	def setData(self, all_orders):
-		row = 0 
-		for order in all_orders: 
-			self.table.setItem(row, 0, QTableWidgetItem(str(order.id)))
-			self.table.setItem(row, 1, QTableWidgetItem(order.model))
-			self.table.setItem(row, 2, QTableWidgetItem(str(order.order_quantity)))
-			self.table.setItem(row, 3, QTableWidgetItem(str(order.order_time)))
-			row += 1 
-
-	'''
-	deleteRecord(): 
-	- Deletes the currently selected record from the table 
-	- Use setCurrentCell() to ensure the current selection is reset to None
 	'''			
 
 	def deleteRecord(self):
-		if self.table.currentRow() != -1: 
-		#	print('current selected: ', self.table.currentRow())
-			selected_item = self.table.item(self.table.currentRow(),0).text()
-			self.deleteFromDB(selected_item)
-			self.table.removeRow(self.table.currentRow())
-			self.table.setCurrentCell(-1,-1)
-			self.table_length = len(self.main.session.query(ProductionQueue).all())
+		if self.select.hasSelection():
+			qmodelindex = self.select.selectedRows()[0]
+			row = qmodelindex.row()
+			self.model.removeRows(row,1)
+			self.model.submitAll()
 
-	'''
-	deleteFromDB(): 
-	- Takes an unique order number and removes it from the database table.
-	'''
-	def deleteFromDB(self,record): 
-		search_instance = self.main.session.query(ProductionQueue).filter_by(id = record).one()
-		self.main.session.delete(search_instance)
-		self.main.session.commit()
 
 if __name__ == '__main__' : 
 

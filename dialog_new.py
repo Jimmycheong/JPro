@@ -12,26 +12,47 @@ from PyQt5.QtGui import QKeySequence
 from dbcreation import Models
 from connect import Connect
 from dbcreation import ProductionQueue
+from PyQt5.QtSql import QSqlDatabase,QSqlQuery,QSqlRecord, QSqlField
+import datetime
 
 class Dialog(QDialog): 
 
+	
 	def __init__(self): 
 		super().__init__()
 
 		self.initdiagUI()
 
 	def initdiagUI(self):
+
 		exitShortcut = QShortcut(QKeySequence('Ctrl+W'),self, qApp.quit)
 
-		self.main = Connect()
-		all_models = self.main.session.query(Models).all()
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	# Create local seperate connection to databse
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+
+		self.db = QSqlDatabase.database("dialog")
+
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	# Create SqlRecord template with predefined fields 
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+
+		self.record_template = QSqlRecord()
+		self.record_template.insert(0, QSqlField('model'))
+		self.record_template.insert(1, QSqlField('order_quantity'))
+		self.record_template.insert(2, QSqlField('order_time'))
+		self.record_template.insert(3, QSqlField('expected_production'))
+
+
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	# Main widgets 
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
 
 		label_model = QLabel('Model',self)
 		label_model.move(40, 50)
 
 		self.combo = QComboBox(self)
-		for model in all_models: 
-			self.combo.addItem(model.name)
+		self.fillcombo()
 		self.combo.move(180, 50)
 
 		label_orderquantity = QLabel('Order Quantity',self)
@@ -39,6 +60,7 @@ class Dialog(QDialog):
 
 		self.oq_input = QLineEdit('',self)
 		self.oq_input.move(180, 100)
+
 
 		self.error_message = QLabel('',self)
 		self.error_message.move(180, 130)
@@ -50,14 +72,37 @@ class Dialog(QDialog):
 		self.setFixedSize(350,200)
 		self.setWindowTitle('Input Dialog')
 		self.show()		
+		self.new_record = -1
 
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+
+	#							METHODS													#
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+
+
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	#Populate combo box with model names using QSqlQuery and QSqlRecord objects
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	def fillcombo(self):
+		q = QSqlQuery("select name from models",self.db)
+		self.rec = q.record()
+		nameCol = self.rec.indexOf("name")
+		print (nameCol)
+		while q.next():
+			self.combo.addItem(q.value(nameCol))
+
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
+	#Submit input data to the model in database
+	#=====#	#=====#	#=====#	#=====#	#=====#	#=====#
 	def submittodb(self): 
 		#print ('Inside label: ', self.oq_input.text())
 		if self.oq_input.text().isdigit():
-			instance = ProductionQueue(model=self.combo.currentText(), 
-																	order_quantity = self.oq_input.text())
-			self.main.session.add(instance)
-			self.main.session.commit()
+			self.new_record = QSqlRecord(self.record_template)
+			self.new_record.setValue(0, self.combo.currentText())
+			self.new_record.setValue(1, self.oq_input.text())
+			self.new_record.setValue(2, str(datetime.datetime.now()))
 			self.close()
 		else: 
 			self.error_message.setText('Please enter an integer only')
